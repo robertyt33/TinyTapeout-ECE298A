@@ -188,7 +188,7 @@ Using the same testbench as the above (changing the netlist to be tested) we got
 ![alt text](../Simulations/Post-Layout/plot_write_snm.png)
 
 ## **5.3 Post-Layout Timing Analysis**
-To simulate bitline capaitances I simulated the results for three different values: 50f, 500f, and 1000f to simulate real world values.
+To simulate bitline load capacitiances I simulated the results for three different values: 50f, 500f, and 1000f to simulate real world values.
 ### **Access Time**
 | C | Read Access Time | Write Access Time|
 |--------|------------|------------|
