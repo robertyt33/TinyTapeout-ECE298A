@@ -8,11 +8,11 @@
 - The standard 6T architecture consists of two functional blocks:
 1.  **Storage Element (The Core):** Two cross-coupled CMOS inverters (M1-M4) form a bistable latch. If noise perturbs the internal node voltage, the positive feedback loop drives it back to the supply rails ($V_{DD}$ or $GND$), ensuring data integrity.
 2.  **Access Control (The Interface):** Two NMOS "Pass-Gate" transistors (M5-M6) isolate the sensitive storage nodes from the heavy bitlines during the "Hold" state and provide a controlled path for data transfer during "Read" and "Write" operations.
-- The cell must perform three distinct operations reliably:
+- The cell has three modes of operations:
 1. **Hold (Standby):** The Wordline (WL) is low. Access transistors are OFF, isolating the latch. The cross-coupled inverters reinforce the stored data against leakage currents and noise.
 2. **Read:** The Bitlines (BL/BLB) are precharged to $V_{DD}$. The WL goes high. The cell must discharge one bitline slightly without flipping its own internal state ("Read Stability").
 3. **Write:** One bitline is driven to $0V$, and the other to $V_{DD}$. The WL goes high. The access transistors must overpower the internal inverters to force the new value into the cell ("Write Ability").
-- Tools used: Xschem, Ngspice, Magic, Python 
+- Tools used: Xschem, Ngspice, Magic, Python
 - Overall design flow (schematic → simulation → layout → extraction → post-layout sim)
 ### **1.1. Target performance goals**
 
@@ -125,7 +125,7 @@ Write SNM: 0.71V
 # **4. Layout Design**
 After I have done initial layout (I just randomly referred a picture online for layout) I came across [this paper](https://www.researchgate.net/publication/312094888_Design_and_Simulation_of_6T_SRAM_Cell_Architectures_in_32nm_Technology), where it talks about classification of 6T SRAM designs, and their performance. So I think it is worth noting here. (I was initially laying out similar to the "Type-1a cell")
 ![alt text](pictures/Summary-of-6T-SRAM-cell-layout-topologies.png)
-And during one meeting, Prof. Long suggested me to share the ground of the inverter pairs, which would further reduce the size of the cell. So in the end I ended up trying out two different options: Type-1a and Type-1b cell.
+So in the end I ended up trying out two different options: Type-1a and Type-1b cell.
 
 ## **4.1 Type-1a**
 
@@ -135,13 +135,9 @@ And during one meeting, Prof. Long suggested me to share the ground of the inver
 
 
 ### Design Approach
-Type-1A was designed with the primary objective of achieving the **minimum possible cell height**, producing an extremely compact 6T SRAM bitcell while staying fully compliant with Sky130 DRC rules.
 
 ### (1) Device Placement
-- The **cross-coupled inverter pair** is placed in a perfectly mirrored configuration to ensure **left–right symmetry**, which is crucial for matched SNM and balanced switching.  
-- **Pull-down NMOS pair** (green diffusion) is placed close to the bitline contacts to improve **read stability**.  
-- **Pull-up PMOS pair** (brown diffusion) is placed in a shared **single N-well** at the top.  
-- **Access transistors** share diffusion with the inverter nodes, minimizing node capacitance and internal routing length.
+- The **cross-coupled inverter pair** is placed in a mirrored configuration to ensure **left–right symmetry**, which is crucial for matched SNM and balanced switching.  
 
 ### (2) Routing Strategy
 - **Vertical M1 rails** are used for the bitlines (BL and BLB).  
@@ -156,8 +152,6 @@ Since this layout was designed during the end of term, there are too much things
 (Will finish type1b later after finals, so going with Type1a for now)
 
 ## **4.3 DRC Report**
-
-![DRC Report](pictures/drc_report.png)
 
 ✔ DRC Clean  :)
 
@@ -208,7 +202,7 @@ To simulate bitline load capacitiances I simulated the results for three differe
 | Write Access Time (50f) | <200ps|77.7ps | 69.1ps|
 
 Comments:
-* One big source of error is that in pre-layout, the values were estimated suing simiplified "side-of-squre" approximation from the waveform viewer, I did not got the chance to change to calcualte using the python function I have developed. 
+* One big source of error is that in pre-layout, the values were estimated suing simiplified "side-of-squre" approximation from the waveform viewer, I did not got the chance to change to calcualting using the python function I have developed. 
 * Write SNM is within the targeted range, which is good, while although Hold SNM exceeds the targeted value, it is 40% of VDD and still fairly robust. The Read SNM, is also good to ensure that the cell not likely will have Read Disturbance. 
 
 # **7. Challenges Encountered**
