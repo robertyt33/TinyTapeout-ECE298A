@@ -1,0 +1,108 @@
+* 6T SRAM SNM Testbench (Hold, Read, Write Butterfly Curves)
+* ==============================================================================
+
+* 1. TECHNOLOGY MODELS
+* CHANGE THIS PATH if needed
+.lib "/usr/local/share/pdk/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+
+* 2. INCLUDE BITCELL
+* Assumes 6T_SRAM_1bit.spice is in the same folder
+.include 6T_SRAM_1bit.spice
+
+* 3. INSTANTIATION & PARAMETERS
+.param VDD_VAL=1.8
+
+* Main Supply
+Vsupply vdd 0 DC {VDD_VAL}
+
+* Bitline & Wordline Drivers (DC values controlled by .control block)
+Vwl_driver   wl    0 DC 0
+Vbl_driver   bl    0 DC 0
+Vblb_driver  blbar 0 DC 0
+
+* Device Under Test
+* Ports: bl blbar qbar q vdd gnd wl
+Xdut bl blbar qbar q vdd 0 wl x6T_SRAM_1bit
+
+* ==============================================================================
+* 4. SNM SWEEP MECHANISM (Switching Resistors)
+* ==============================================================================
+* These resistors allow us to force a node voltage during a sweep (Low R)
+* or let it float naturally (High R) when measuring the other side.
+
+Rsnm_q   q_force   q    100G  
+Rsnm_qb  qb_force  qbar 100G 
+
+Vforce_q  q_force  0 DC 0
+Vforce_qb qb_force 0 DC 0
+
+* ==============================================================================
+* 5. CONTROL BLOCK
+* ==============================================================================
+.control
+    op
+    
+    * ================== 1. READ SNM ==================
+    echo "Running Read SNM..."
+    
+    * Setup: Wordline ON, Bitlines Precharged HIGH
+    alter Vwl_driver dc=1.8
+    alter Vbl_driver dc=1.8
+    alter Vblb_driver dc=1.8
+    
+    * Sweep 1: Force Q, Measure Qbar
+    alter Rsnm_q = 0.001
+    alter Rsnm_qb = 100G
+    dc Vforce_q 0 1.8 0.01
+    wrdata snm_read_vtc1.txt v(q) v(qbar)
+    
+    * Sweep 2: Force Qbar, Measure Q
+    alter Rsnm_q = 100G
+    alter Rsnm_qb = 0.001
+    dc Vforce_qb 0 1.8 0.01
+    wrdata snm_read_vtc2.txt v(qbar) v(q)
+
+    * ================== 2. HOLD SNM ==================
+    echo "Running Hold SNM..."
+    
+    * Setup: Wordline OFF, Bitlines Idle (usually High)
+    alter Vwl_driver dc=0
+    alter Vbl_driver dc=1.8
+    alter Vblb_driver dc=1.8
+    
+    * Sweep 1: Force Q
+    alter Rsnm_q = 0.001
+    alter Rsnm_qb = 100G
+    dc Vforce_q 0 1.8 0.01
+    wrdata snm_hold_vtc1.txt v(q) v(qbar)
+    
+    * Sweep 2: Force Qbar
+    alter Rsnm_q = 100G
+    alter Rsnm_qb = 0.001
+    dc Vforce_qb 0 1.8 0.01
+    wrdata snm_hold_vtc2.txt v(qbar) v(q)
+    
+    * ================== 3. WRITE SNM (Butterfly) ==================
+    echo "Running Write SNM..."
+    
+    * Setup: Wordline ON. 
+    * Writing a '0' to Q side -> BL = 0, BLB = 1.8
+    alter Vwl_driver dc=1.8
+    alter Vbl_driver dc=0
+    alter Vblb_driver dc=1.8
+    
+    * Sweep 1: Force Q
+    alter Rsnm_q = 0.001
+    alter Rsnm_qb = 100G
+    dc Vforce_q 0 1.8 0.01
+    wrdata snm_write_vtc1.txt v(q) v(qbar)
+    
+    * Sweep 2: Force Qbar
+    alter Rsnm_q = 100G
+    alter Rsnm_qb = 0.001
+    dc Vforce_qb 0 1.8 0.01
+    wrdata snm_write_vtc2.txt v(qbar) v(q)
+
+    echo "All Simulations Complete."
+.endc
+.end
