@@ -1,0 +1,32 @@
+* NGSPICE file created from 6T_SRAM_1bit.ext - technology: sky130A
+
+.subckt x6T_SRAM_1bit bl blbar qbar q vdd gnd wl
+X0 qbar q gnd gnd sky130_fd_pr__nfet_01v8 ad=0.3528 pd=2.52 as=0.3528 ps=2.52 w=0.84 l=0.18
+X1 q wl bl gnd sky130_fd_pr__nfet_01v8 ad=0.1512 pd=1.56 as=0.1512 ps=1.56 w=0.42 l=0.24
+X2 q qbar gnd gnd sky130_fd_pr__nfet_01v8 ad=0.3528 pd=2.52 as=0.3528 ps=2.52 w=0.84 l=0.18
+X3 qbar q vdd vdd sky130_fd_pr__pfet_01v8 ad=0.1764 pd=1.68 as=0.1764 ps=1.68 w=0.42 l=0.18
+X4 qbar wl blbar gnd sky130_fd_pr__nfet_01v8 ad=0.1512 pd=1.56 as=0.1512 ps=1.56 w=0.42 l=0.24
+X5 q qbar vdd vdd sky130_fd_pr__pfet_01v8 ad=0.1764 pd=1.68 as=0.1764 ps=1.68 w=0.42 l=0.18
+C0 wl vdd 0
+C1 blbar q 0.02758f
+C2 bl qbar 0.01553f
+C3 wl q 0.01898f
+C4 wl blbar 0.07543f
+C5 vdd bl 0.11511f
+C6 vdd qbar 0.18118f
+C7 bl q 0.14686f
+C8 q qbar 0.27548f
+C9 bl blbar 0.08501f
+C10 blbar qbar 0.18685f
+C11 wl bl 0.07277f
+C12 vdd q 0.17955f
+C13 wl qbar 0.02135f
+C14 vdd blbar 0.10496f
+C15 blbar gnd 0.43635f
+C16 bl gnd 0.45248f
+C17 wl gnd 0.68819f
+C18 q gnd 0.85361f
+C19 qbar gnd 0.64243f
+C20 vdd gnd 0.85602f
+.ends
+
