@@ -1,0 +1,111 @@
+* SRAM Access Time Testbench (Read & Write Delay)
+* ==============================================================================
+
+* 1. TECH & CELL
+* !!! UPDATE PATH TO YOUR PDK !!!
+.lib "/usr/local/share/pdk/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+.include 6T_SRAM_1bit.spice
+
+* 2. PARAMETERS
+.param VDD_VAL = 1.8
+.param C_BL_LOAD = 50f
+
+* 3. INITIAL CONDITIONS (GLOBAL)
+* We initialize the cell to store a '1' (Q=1.8, Qbar=0)
+* We also initialize Bitlines to 1.8V (Precharged)
+* This applies to the start of EVERY transient run.
+.ic v(q)=1.8 v(qbar)=0 v(bl)=1.8 v(blbar)=1.8
+
+* 4. POWER
+Vsup vdd 0 DC {VDD_VAL}
+
+* 5. SIGNALS & DRIVERS
+* Wordline Driver: Pulse starts at 2ns, rises in 0.1ns
+Vwl_source wl 0 PULSE(0 1.8 2n 0.1n 0.1n 10n 20n)
+
+* Bitline Drivers (connected via switches/resistors)
+Vbl_source  bl_drive  0 DC 1.8
+Vblb_source blb_drive 0 DC 1.8
+
+* Variable Resistors to simulate Tri-state drivers
+* R = 0.001 -> Driven (Write)
+* R = 100G  -> Floating (Read)
+Rbl  bl_drive  bl    100G
+Rblb blb_drive blbar 100G
+
+* 6. LOAD CAPACITANCE
+Cbl  bl    0 {C_BL_LOAD}
+Cblb blbar 0 {C_BL_LOAD}
+
+* 7. DUT
+Xdut bl blbar qbar q vdd 0 wl x6T_SRAM_1bit
+
+* ==============================================================================
+* 8. SIMULATION CONTROL
+* ==============================================================================
+.control
+    * Define measurement variables
+    let v_mid = 0.9
+
+    * ========================================================
+    * TEST 1: WRITE ACCESS TIME (Write '0' to Q)
+    * ========================================================
+    echo " "
+    echo "--- TEST 1: WRITE ACCESS TIME ---"
+    
+    * 1. Setup Drivers: Strong Drive (Low R)
+    alter Rbl = 0.001
+    alter Rblb = 0.001
+    
+    * 2. Set Data: Drive BL=0, BLB=1.8 (Write '0')
+    * Note: BL will snap from 1.8(IC) to 0 almost instantly at t=0
+    alter Vbl_source DC = 0
+    alter Vblb_source DC = 1.8
+    
+    * 3. Run Transient (uic forces the .ic conditions at t=0)
+    tran 0.01n 10n uic
+    
+    * 4. Measure Write Time
+    * Trigger: WL rising to 50% (0.9V)
+    * Target:  Q falling to 50% (0.9V)
+    meas tran t_write_delay trig v(wl) val=0.9 rise=1 targ v(q) val=0.9 fall=1
+    
+    echo "Write Access Time: $&t_write_delay s"
+    
+    * Save data for checking
+    wrdata timing_write.txt v(wl) v(q) v(qbar) v(bl) v(blbar)
+
+    * ========================================================
+    * TEST 2: READ ACCESS TIME (Read '1' from Q)
+    * ========================================================
+    echo " "
+    echo "--- TEST 2: READ ACCESS TIME ---"
+
+    * 1. Setup Drivers: Floating / High-Z (High R)
+    alter Rbl = 100G
+    alter Rblb = 100G
+    
+    * 2. Reset Sources to VDD (Precharge state)
+    alter Vbl_source DC = 1.8
+    alter Vblb_source DC = 1.8
+
+    * 3. Run Transient
+    * The .ic directive resets Q=1.8, BL=1.8 for this run too
+    tran 0.01n 10n uic
+    
+    * 4. Calculate Differential
+    * Since Q=1, Qbar=0, the cell pulls down BLBAR. Diff = BL - BLBAR.
+    let v_diff = v(bl) - v(blbar)
+
+    * 5. Measure Read Time
+    * Trigger: WL rising to 50%
+    * Target:  Diff Voltage reaching 50mV (0.05V)
+    meas tran t_read_delay trig v(wl) val=0.9 rise=1 targ v_diff val=0.05 rise=1
+    
+    echo "Read Access Time: $&t_read_delay s"
+
+    * Save data for checking
+    wrdata timing_read.txt v(wl) v(bl) v(blbar) v_diff
+
+.endc
+.end

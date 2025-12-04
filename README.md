@@ -2,7 +2,7 @@
 
 # Tiny Tapeout Analog Project Template
 
-- [Read the documentation for project](docs/info.md)
+- [Read the documentation for project](docs/Project_Document.md)
 
 ## What is Tiny Tapeout?
 
