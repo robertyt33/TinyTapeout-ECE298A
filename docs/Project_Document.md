@@ -9,12 +9,12 @@
 1.  **Storage Element (The Core):** Two cross-coupled CMOS inverters (M1-M4) form a bistable latch. If noise perturbs the internal node voltage, the positive feedback loop drives it back to the supply rails ($V_{DD}$ or $GND$), ensuring data integrity.
 2.  **Access Control (The Interface):** Two NMOS "Pass-Gate" transistors (M5-M6) isolate the sensitive storage nodes from the heavy bitlines during the "Hold" state and provide a controlled path for data transfer during "Read" and "Write" operations.
 - The cell must perform three distinct operations reliably:
-* **Hold (Standby):** The Wordline (WL) is low. Access transistors are OFF, isolating the latch. The cross-coupled inverters reinforce the stored data against leakage currents and noise.
-* **Read:** The Bitlines (BL/BLB) are precharged to $V_{DD}$. The WL goes high. The cell must discharge one bitline slightly without flipping its own internal state ("Read Stability").
-* **Write:** One bitline is driven to $0V$, and the other to $V_{DD}$. The WL goes high. The access transistors must overpower the internal inverters to force the new value into the cell ("Write Ability").
+1. **Hold (Standby):** The Wordline (WL) is low. Access transistors are OFF, isolating the latch. The cross-coupled inverters reinforce the stored data against leakage currents and noise.
+2. **Read:** The Bitlines (BL/BLB) are precharged to $V_{DD}$. The WL goes high. The cell must discharge one bitline slightly without flipping its own internal state ("Read Stability").
+3. **Write:** One bitline is driven to $0V$, and the other to $V_{DD}$. The WL goes high. The access transistors must overpower the internal inverters to force the new value into the cell ("Write Ability").
 - Tools used: Xschem, Ngspice, Magic, Python 
 - Overall design flow (schematic → simulation → layout → extraction → post-layout sim)
-- Target performance goals:
+### **1.1. Target performance goals**
 
 | Category | Target | As % of VDD | Comments |
 | ----- | ----- | ----- | ----- |
@@ -41,7 +41,6 @@ Schematic in Xschem:
 ![alt text](../Schematics/6T_SRAM_1bit.png)
 
 ## **2.2 Transistor Sizing**
-## 2.2 Transistor Sizing
 
 I started with some initial parameters, but found they did not meet the Write SNM targets. Through iteration, I converged on the following final dimensions to balance Read Stability (High Cell Ratio) against Write Ability (Low Pull Ratio).
 
